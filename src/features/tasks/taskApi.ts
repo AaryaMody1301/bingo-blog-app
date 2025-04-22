@@ -18,18 +18,18 @@ export const taskApi = createApi({
   tagTypes: ['Task'],
   endpoints: (builder) => ({
     getTasks: builder.query<Task[], void>({
-      query: () => '/api/task',
+      query: () => '/api/users/',
       providesTags: ['Task'],
     }),
     
     getTaskById: builder.query<Task, string>({
-      query: (id) => `/api/task/${id}`,
+      query: (id) => `/api/users/${id}`,
       providesTags: (result, error, id) => [{ type: 'Task', id }],
     }),
     
     addTask: builder.mutation<Task, Omit<Task, 'id'>>({
       query: (task) => ({
-        url: '/api/task',
+        url: '/api/users/',
         method: 'POST',
         body: task,
       }),
@@ -38,7 +38,7 @@ export const taskApi = createApi({
     
     updateTask: builder.mutation<Task, Task>({
       query: (task) => ({
-        url: `/api/task/${task.id}`,
+        url: `/api/users/${task.id}`,
         method: 'PUT',
         body: task,
       }),
@@ -47,7 +47,7 @@ export const taskApi = createApi({
     
     deleteTask: builder.mutation<void, string>({
       query: (id) => ({
-        url: `/api/task/${id}`,
+        url: `/api/users/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Task'],

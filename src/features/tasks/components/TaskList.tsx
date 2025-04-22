@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Typography,
   Button,
@@ -11,11 +11,15 @@ import {
   Chip,
   CircularProgress,
   Alert,
-  Divider
+  Divider,
+  ToggleButtonGroup,
+  ToggleButton,
+  Paper
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import styled from '@emotion/styled';
 
 import {
@@ -50,6 +54,8 @@ const mockTasks: Task[] = [
   }
 ];
 
+const CATEGORIES = ['All', 'Blog', 'Product', 'Feature', 'Bug', 'Other'];
+
 const TaskListContainer = styled(Box)`
   padding: 20px;
   max-width: 1000px;
@@ -77,26 +83,32 @@ const CategoryChip = styled(Chip)`
   margin-bottom: 8px;
 `;
 
+const FilterContainer = styled(Paper)`
+  padding: 16px;
+  margin-bottom: 24px;
+`;
+
 const TaskList = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
-  
+  const [categoryFilter, setCategoryFilter] = useState<string>('All');
+
   // RTK Query hooks
   const { data: tasks, isLoading, isError, refetch } = useGetTasksQuery();
   const [addTask, { isLoading: isAdding }] = useAddTaskMutation();
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
-  const [deleteTask, { isLoading: isDeleting }] = useDeleteTaskMutation();
-  
+  const [deleteTask] = useDeleteTaskMutation();
+
   const handleOpenDialog = (task?: Task) => {
     setSelectedTask(task);
     setDialogOpen(true);
   };
-  
+
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setSelectedTask(undefined);
   };
-  
+
   const handleSubmitTask = async (taskData: Task | Omit<Task, 'id'>) => {
     try {
       if ('id' in taskData) {
@@ -109,7 +121,7 @@ const TaskList = () => {
       console.error('Error saving task:', error);
     }
   };
-  
+
   const handleDeleteTask = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this task?')) {
       try {
@@ -119,7 +131,28 @@ const TaskList = () => {
       }
     }
   };
-  
+
+  const handleCategoryFilterChange = (
+    _event: React.MouseEvent<HTMLElement>,
+    newFilter: string | null,
+  ) => {
+    if (newFilter !== null) {
+      setCategoryFilter(newFilter);
+    }
+  };
+
+  // Filter tasks based on selected category
+  const filteredMockTasks = useMemo(() => {
+    if (categoryFilter === 'All') return mockTasks;
+    return mockTasks.filter(task => task.category === categoryFilter);
+  }, [categoryFilter]);
+
+  const filteredTasks = useMemo(() => {
+    if (!tasks) return [];
+    if (categoryFilter === 'All') return tasks;
+    return tasks.filter(task => task.category === categoryFilter);
+  }, [tasks, categoryFilter]);
+
   // Show loading spinner when data is loading
   if (isLoading) {
     return (
@@ -128,13 +161,13 @@ const TaskList = () => {
       </Box>
     );
   }
-  
+
   // Show error message if loading fails
   if (isError) {
     return (
       <TaskListContainer>
-        <Alert 
-          severity="error" 
+        <Alert
+          severity="error"
           action={
             <Button color="inherit" size="small" onClick={() => refetch()}>
               Retry
@@ -143,21 +176,41 @@ const TaskList = () => {
         >
           Failed to load tasks. There might be an issue with the API connection.
         </Alert>
-        
+
         <Box mt={4}>
           <Typography variant="h6" color="textSecondary" gutterBottom>
             Using mock data instead:
           </Typography>
           <Divider sx={{ mb: 3 }} />
+
+          <FilterContainer>
+            <Box display="flex" alignItems="center" gap={2}>
+              <FilterListIcon color="primary" />
+              <Typography variant="body1">Filter by category:</Typography>
+              <ToggleButtonGroup
+                value={categoryFilter}
+                exclusive
+                onChange={handleCategoryFilterChange}
+                size="small"
+              >
+                {CATEGORIES.map(cat => (
+                  <ToggleButton key={cat} value={cat}>
+                    {cat}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+            </Box>
+          </FilterContainer>
+
           <Grid container spacing={3}>
-            {mockTasks.map((task) => (
-              <Grid item xs={12} sm={6} md={4} key={task.id}>
+            {filteredMockTasks.map((task) => (
+              <Grid item key={task.id} xs={12} sm={6} md={4}>
                 <StyledCard>
                   <CardContentGrow>
-                    <CategoryChip 
-                      label={task.category} 
-                      size="small" 
-                      color="primary" 
+                    <CategoryChip
+                      label={task.category}
+                      size="small"
+                      color="primary"
                       variant="outlined"
                     />
                     <Typography variant="h6" gutterBottom>
@@ -168,10 +221,18 @@ const TaskList = () => {
                     </Typography>
                   </CardContentGrow>
                   <CardActions>
-                    <IconButton size="small" color="primary">
+                    <IconButton
+                      size="small"
+                      color="primary"
+                      onClick={() => handleOpenDialog(task)}
+                    >
                       <EditIcon />
                     </IconButton>
-                    <IconButton size="small" color="error">
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={() => window.alert(`Mock mode: Can't delete ${task.title} - no API connection`)}
+                    >
                       <DeleteIcon />
                     </IconButton>
                   </CardActions>
@@ -180,48 +241,80 @@ const TaskList = () => {
             ))}
           </Grid>
         </Box>
+
+        <TaskForm
+          open={dialogOpen}
+          onClose={handleCloseDialog}
+          task={selectedTask}
+          onSubmit={(taskData) => {
+            window.alert(`Mock mode: Would save "${taskData.title}" but no API connection`);
+            handleCloseDialog();
+          }}
+          isLoading={false}
+        />
       </TaskListContainer>
     );
   }
-  
+
   // Show actual data from API
-  const taskList = tasks || [];
-  
+  const taskList = filteredTasks;
+
   return (
     <TaskListContainer>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4">
           Task Manager
         </Typography>
-        <Button 
-          variant="contained" 
-          color="primary" 
+        <Button
+          variant="contained"
+          color="primary"
           startIcon={<AddIcon />}
           onClick={() => handleOpenDialog()}
         >
           Add Task
         </Button>
       </Box>
-      
+
+      <FilterContainer>
+        <Box display="flex" alignItems="center" gap={2}>
+          <FilterListIcon color="primary" />
+          <Typography variant="body1">Filter by category:</Typography>
+          <ToggleButtonGroup
+            value={categoryFilter}
+            exclusive
+            onChange={handleCategoryFilterChange}
+            size="small"
+          >
+            {CATEGORIES.map(cat => (
+              <ToggleButton key={cat} value={cat}>
+                {cat}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        </Box>
+      </FilterContainer>
+
       {taskList.length === 0 ? (
         <Box textAlign="center" py={5}>
           <Typography variant="h6" color="textSecondary" gutterBottom>
             No tasks found
           </Typography>
           <Typography variant="body2" color="textSecondary" gutterBottom>
-            Create your first task by clicking the "Add Task" button.
+            {categoryFilter !== 'All' ?
+              `No tasks with category "${categoryFilter}" found. Try another filter or create a new task.` :
+              'Create your first task by clicking the "Add Task" button.'}
           </Typography>
         </Box>
       ) : (
         <Grid container spacing={3}>
           {taskList.map((task) => (
-            <Grid item xs={12} sm={6} md={4} key={task.id}>
+            <Grid item key={task.id} xs={12} sm={6} md={4}>
               <StyledCard>
                 <CardContentGrow>
-                  <CategoryChip 
-                    label={task.category} 
-                    size="small" 
-                    color="primary" 
+                  <CategoryChip
+                    label={task.category}
+                    size="small"
+                    color="primary"
                     variant="outlined"
                   />
                   <Typography variant="h6" gutterBottom>
@@ -232,18 +325,17 @@ const TaskList = () => {
                   </Typography>
                 </CardContentGrow>
                 <CardActions>
-                  <IconButton 
-                    size="small" 
+                  <IconButton
+                    size="small"
                     color="primary"
                     onClick={() => handleOpenDialog(task)}
                   >
                     <EditIcon />
                   </IconButton>
-                  <IconButton 
-                    size="small" 
+                  <IconButton
+                    size="small"
                     color="error"
                     onClick={() => handleDeleteTask(task.id)}
-                    disabled={isDeleting}
                   >
                     <DeleteIcon />
                   </IconButton>
@@ -253,7 +345,7 @@ const TaskList = () => {
           ))}
         </Grid>
       )}
-      
+
       <TaskForm
         open={dialogOpen}
         onClose={handleCloseDialog}

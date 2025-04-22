@@ -7,7 +7,8 @@ import {
   Paper, 
   Box,
   Alert,
-  Snackbar
+  Snackbar,
+  useTheme
 } from '@mui/material';
 import styled from '@emotion/styled';
 import { 
@@ -25,7 +26,12 @@ const BingoContainer = styled(Box)`
   margin: 0 auto;
 `;
 
-const BingoCell = styled(Paper)<{ isMatched: boolean }>`
+interface BingoCellProps {
+  isMatched: boolean;
+  theme: any;
+}
+
+const BingoCell = styled(Paper)<BingoCellProps>`
   display: flex;
   justify-content: center;
   align-items: center;
@@ -35,9 +41,14 @@ const BingoCell = styled(Paper)<{ isMatched: boolean }>`
   aspect-ratio: 1;
   cursor: default;
   transition: all 0.3s ease;
-  background-color: ${({ isMatched }) => isMatched ? '#4caf50' : '#fff'};
-  color: ${({ isMatched }) => isMatched ? '#fff' : 'inherit'};
-  transform: ${({ isMatched }) => isMatched ? 'scale(1.05)' : 'scale(1)'};
+  background-color: ${({ isMatched, theme }) => 
+    isMatched ? '#4caf50' : theme.palette.background.paper};
+  color: ${({ isMatched, theme }) => 
+    isMatched ? '#fff' : theme.palette.text.primary};
+  transform: ${({ isMatched }) => 
+    isMatched ? 'scale(1.05)' : 'scale(1)'};
+  border: ${({ theme, isMatched }) => 
+    !isMatched && theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.12)' : 'none'};
 `;
 
 const ControlsContainer = styled(Box)`
@@ -49,6 +60,7 @@ const ControlsContainer = styled(Box)`
 
 const BingoGame = () => {
   const dispatch = useDispatch();
+  const theme = useTheme();
   const grid = useSelector(selectGrid);
   const calledNumbers = useSelector(selectCalledNumbers);
   const hasBingo = useSelector(selectHasBingo);
@@ -119,7 +131,11 @@ const BingoGame = () => {
       <Grid container spacing={2}>
         {grid.map((number, index) => (
           <Grid item xs={2.4} key={index}>
-            <BingoCell isMatched={isCellCalled(number)} elevation={isCellCalled(number) ? 8 : 1}>
+            <BingoCell 
+              isMatched={isCellCalled(number)} 
+              theme={theme}
+              elevation={isCellCalled(number) ? 8 : 1}
+            >
               {number}
             </BingoCell>
           </Grid>

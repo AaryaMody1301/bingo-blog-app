@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from 'react';
-import { 
+import {
   Button,
   TextField,
   Dialog,
@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { Task } from '../taskAPI';
 
+// Same categories as TaskList, but without 'All' since it's a filter option, not a task category
 const CATEGORIES = ['Blog', 'Product', 'Feature', 'Bug', 'Other'];
 
 interface TaskFormProps {
@@ -24,17 +25,17 @@ interface TaskFormProps {
   isLoading: boolean;
 }
 
-const TaskForm: FC<TaskFormProps> = ({ 
-  task, 
-  open, 
-  onClose, 
-  onSubmit, 
-  isLoading 
+const TaskForm: FC<TaskFormProps> = ({
+  task,
+  open,
+  onClose,
+  onSubmit,
+  isLoading
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
-  
+
   // Reset form when task changes or dialog opens/closes
   useEffect(() => {
     if (task) {
@@ -47,7 +48,7 @@ const TaskForm: FC<TaskFormProps> = ({
       setCategory('');
     }
   }, [task, open]);
-  
+
   const handleSubmit = () => {
     const formData = {
       ...(task?.id ? { id: task.id } : {}),
@@ -55,12 +56,12 @@ const TaskForm: FC<TaskFormProps> = ({
       description: description.trim(),
       category: category.trim() || 'Other',
     };
-    
+
     onSubmit(formData as Task);
   };
-  
+
   const isFormValid = () => title.trim() !== '' && description.trim() !== '';
-  
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>{task ? 'Edit Task' : 'Add New Task'}</DialogTitle>
@@ -104,9 +105,9 @@ const TaskForm: FC<TaskFormProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={isLoading}>Cancel</Button>
-        <Button 
-          onClick={handleSubmit} 
-          variant="contained" 
+        <Button
+          onClick={handleSubmit}
+          variant="contained"
           color="primary"
           disabled={!isFormValid() || isLoading}
         >
