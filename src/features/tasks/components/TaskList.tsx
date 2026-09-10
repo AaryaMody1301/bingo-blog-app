@@ -28,11 +28,10 @@ import {
   useAddTaskMutation,
   useUpdateTaskMutation,
   useDeleteTaskMutation
-} from '../taskAPI';
+} from '../taskApi';
 
 import TaskForm from './TaskForm';
 
-// Initial mock data in case the API is not available
 const mockTasks: Task[] = [
   {
     id: '1',
@@ -93,7 +92,6 @@ const TaskList = () => {
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
 
-  // RTK Query hooks
   const { data: tasks, isLoading, isError, refetch } = useGetTasksQuery();
   const [addTask, { isLoading: isAdding }] = useAddTaskMutation();
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
@@ -141,7 +139,6 @@ const TaskList = () => {
     }
   };
 
-  // Filter tasks based on selected category
   const filteredMockTasks = useMemo(() => {
     if (categoryFilter === 'All') return mockTasks;
     return mockTasks.filter(task => task.category === categoryFilter);
@@ -153,7 +150,6 @@ const TaskList = () => {
     return tasks.filter(task => task.category === categoryFilter);
   }, [tasks, categoryFilter]);
 
-  // Show loading spinner when data is loading
   if (isLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
@@ -162,7 +158,6 @@ const TaskList = () => {
     );
   }
 
-  // Show error message if loading fails
   if (isError) {
     return (
       <TaskListContainer>
@@ -204,7 +199,7 @@ const TaskList = () => {
 
           <Grid container spacing={3}>
             {filteredMockTasks.map((task) => (
-              <Grid item key={task.id} xs={12} sm={6} md={4}>
+              <Grid key={task.id} size={{ xs: 12, sm: 6, md: 4 }}>
                 <StyledCard>
                   <CardContentGrow>
                     <CategoryChip
@@ -256,7 +251,6 @@ const TaskList = () => {
     );
   }
 
-  // Show actual data from API
   const taskList = filteredTasks;
 
   return (
@@ -308,7 +302,7 @@ const TaskList = () => {
       ) : (
         <Grid container spacing={3}>
           {taskList.map((task) => (
-            <Grid item key={task.id} xs={12} sm={6} md={4}>
+            <Grid key={task.id} size={{ xs: 12, sm: 6, md: 4 }}>
               <StyledCard>
                 <CardContentGrow>
                   <CategoryChip
@@ -357,4 +351,4 @@ const TaskList = () => {
   );
 };
 
-export default TaskList; 
+export default TaskList;
