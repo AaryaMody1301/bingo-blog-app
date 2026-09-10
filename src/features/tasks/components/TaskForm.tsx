@@ -12,9 +12,8 @@ import {
   Select,
   Box
 } from '@mui/material';
-import { Task } from '../taskAPI';
+import { Task } from '../taskApi';
 
-// Same categories as TaskList, but without 'All' since it's a filter option, not a task category
 const CATEGORIES = ['Blog', 'Product', 'Feature', 'Bug', 'Other'];
 
 interface TaskFormProps {
@@ -36,7 +35,6 @@ const TaskForm: FC<TaskFormProps> = ({
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
 
-  // Reset form when task changes or dialog opens/closes
   useEffect(() => {
     if (task) {
       setTitle(task.title);
@@ -118,4 +116,4 @@ const TaskForm: FC<TaskFormProps> = ({
   );
 };
 
-export default TaskForm; 
+export default TaskForm;
