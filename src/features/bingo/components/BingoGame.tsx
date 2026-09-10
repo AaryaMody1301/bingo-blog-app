@@ -10,6 +10,7 @@ import {
   Snackbar,
   useTheme
 } from '@mui/material';
+import type { Theme } from '@mui/material/styles';
 import styled from '@emotion/styled';
 import {
   selectGrid,
@@ -28,7 +29,7 @@ const BingoContainer = styled(Box)`
 
 interface BingoCellProps {
   isMatched: boolean;
-  theme: any;
+  theme: Theme;
 }
 
 const BingoCell = styled(Paper)<BingoCellProps>`
